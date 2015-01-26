@@ -1,0 +1,16 @@
+{
+    "name": "PimPon",
+    "type": "pimcore-plugin",
+    "license": "BSD-3-Clause",
+	"description": "Provide import-export backend interfaze to Pimcore",
+	"keywords": ["pimcore","plugin","export","import"],
+	"homepage": "",
+	"authors": [
+        {
+            "name": "Javier Diez Briz",
+            "email": "jdiezb@gmail.com",
+            "homepage": "",
+            "role": "Developer"
+        }
+    ]
+}
