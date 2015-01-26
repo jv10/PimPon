@@ -1,0 +1,50 @@
+
+.pimpon_icon_plugin {
+    background: url(/pimcore/static/img/icon/sport_golf.png) no-repeat !important;
+}
+
+.pimpon_icon_importobject {
+    background: url(/pimcore/static/img/icon/database_go.png) no-repeat !important;
+}
+
+.pimpon_icon_exportobject {
+    background: url(/pimcore/static/img/icon/database_save.png) no-repeat !important;
+}
+
+.pimpon_icon_importdocument {
+    background: url(/pimcore/static/img/icon/page_go.png) no-repeat !important;
+}
+
+.pimpon_icon_exportdocument {
+    background: url(/pimcore/static/img/icon/page_save.png) no-repeat !important;
+}
+
+.pimpon_icon_importroutes {
+    background: url(/pimcore/static/img/icon/script_go.png) no-repeat !important;
+}
+
+.pimpon_icon_exportroutes {
+    background: url(/pimcore/static/img/icon/script_save.png) no-repeat !important;
+}
+
+
+.pimpon_icon_importusers {
+    background: url(/pimcore/static/img/icon/user_go.png) no-repeat !important;
+}
+
+.pimpon_icon_exportusers {
+    background: url(/pimcore/static/img/icon/save.png) no-repeat !important;
+}
+
+
+.pimpon_icon_importroles {
+    background: url(/pimcore/static/img/icon/group_go.png) no-repeat !important;
+}
+
+.pimpon_icon_exportroles {
+    background: url(/pimcore/static/img/icon/save.png) no-repeat !important;
+}
+
+
+
+
