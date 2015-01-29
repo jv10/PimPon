@@ -34,16 +34,15 @@ class PimPon_ImportBase
 
     }
 
-    protected function isAvailableProperty($property, $document)
+    protected function isAvailableProperty($property, $object)
     {
         if (in_array($property, $this->excludeProperties) === true) {
             return false;
         }
-        if (method_exists($document, 'set'.$property) === false) {
+        if (method_exists($object, 'set'.$property) === false) {
             return false;
         }
         return true;
-
     }
 
     protected static function isDuplicateException(Exception $ex)

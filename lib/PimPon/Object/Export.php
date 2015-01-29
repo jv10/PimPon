@@ -3,7 +3,7 @@
 class PimPon_Object_Export extends PimPon_ExportBase
 {
 
-    private static $includeMethods = array('getKey', 'getFullPath', 'getPath','getPublished');
+    private static $includeMethods = array('getKey', 'getFullPath', 'getPath', 'getPublished');
 
     public static function doExport(Object_Abstract $object)
     {
@@ -17,21 +17,31 @@ class PimPon_Object_Export extends PimPon_ExportBase
 
     private static function exportObject(Object_Abstract $object, $key = null)
     {
+        self::l('******************************************');
+        self::l($object);
+
+        foreach ($object->getClass()->getFieldDefinitions() as $field) {
+            $key = $field->getName();
+            self::l($field);
+        }
+
         if ($object->getId() !== self::ROOT_ID) {
-            $objectData           = array();
-            $objectClass          = get_class($object);
-            $reflectionClass      = new ReflectionClass($objectClass);
-            $objectMethods        = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
-            foreach ($objectMethods as $method) {
-                if (self::isAvailableMethod($method, $objectClass) === false) {
-                    continue;
-                }
-                $property               = self::fetchProperty($method);
-                $value                  = $method->invoke($object);
-                //$objectData [$property] = self::parseValue($value);
-                $objectData [$property] = PimPon_Object_Encoder::encode($value);
-            }
+            $objectData = array();
+            $objectClass = get_class($object);
             $objectData ['class'] = $objectClass;
+            foreach ($object->getClass()->getFieldDefinitions() as $field) {
+                $property               = ucfirst($field->getName());
+                $fieldtype              = $field->getFieldtype();
+                $value                  = $object->{'get'.$property}();
+                $objectData [$property] = PimPon_Object_Encoder::encode($value,
+                        $fieldtype);
+            }
+            foreach (self::$includeMethods as $method) {
+                $property               = ucfirst(substr($method, 3));
+                $value                  = $object->{$method}();
+                $objectData [$property] = PimPon_Object_Encoder_Default::encode($value);
+            }
+
             self::writeDataOnFile($objectData);
         }
         if ($object->hasChilds() === true) {
@@ -57,47 +67,6 @@ class PimPon_Object_Export extends PimPon_ExportBase
         }
         return true;
 
-    }
-
-    private static function parseValue($value)
-    {
-        $parsedValue = null;
-        if ($value instanceOf Object_Abstract) {
-            $parsedValue [] = [
-                'class' => get_class($value),
-                'type' => 'href',
-                'data' => $value->getFullPath()
-            ];
-        } else if ($value instanceOf Zend_Date) {
-            $parsedValue [] = [
-                'class' => get_class($value),
-                'type' => 'date',
-                'data' => $value->getTimestamp()
-            ];
-        } else if ($value instanceOf Object_Data_StructuredTable) {
-            $parsedValue [] = [
-                'class' => get_class($value),
-                'type' => 'table',
-                'data' => $value->getData()
-            ];
-        } else if ($value instanceOf Asset) {
-            $parsedValue [] = [
-                'class' => get_class($value),
-                'type' => 'asset',
-                'data' => $value->getFullPath()
-            ];
-        } else if (is_array($value) === true) {
-            foreach ($value as $object) {
-                $parsedValue [] = [
-                    'class' => get_class($object),
-                    'type' => 'collection',
-                    'data' => $object->getFullPath()
-                ];
-            }
-        } else {
-            $parsedValue = $value;
-        }
-        return $parsedValue;
     }
 
 }

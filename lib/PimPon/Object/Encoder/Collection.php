@@ -3,18 +3,20 @@
 class PimPon_Object_Encoder_Collection implements PimPon_EncoderInterface
 {
 
-    const TYPE = 'collection';
+    const TYPE = 'objects';
 
     public static function encode($value)
     {
         $collection = null;
         if (is_array($value) === true) {
             foreach ($value as $object) {
-                $collection [] = [
-                    'class' => get_class($object),
-                    'type' => 'collection',
-                    'data' => $object->getFullPath()
-                ];
+                if (is_object($object) === true) {
+                    $collection [] = [
+                        'class' => get_class($object),
+                        'type' => self::TYPE,
+                        'data' => $object->getFullPath()
+                    ];
+                }
             }
         }
         return $collection;
@@ -27,6 +29,7 @@ class PimPon_Object_Encoder_Collection implements PimPon_EncoderInterface
             return $value['data'];
         }
         return null;
+
     }
 
 }

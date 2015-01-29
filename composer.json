@@ -12,5 +12,8 @@
             "homepage": "",
             "role": "Developer"
         }
-    ]
+    ],
+    "require": {
+        "pimcore/installer-plugin": ">=1"
+    }
 }

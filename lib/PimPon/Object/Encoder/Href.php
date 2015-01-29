@@ -18,7 +18,7 @@ class PimPon_Object_Encoder_Href implements PimPon_EncoderInterface
 
     public static function encode($value)
     {
-        if ($value instanceOf Object_Abstract) {
+        if ($value instanceOf Object_Abstract || $value instanceOf Document || $value instanceOf Asset) {
             return [[
                 'class' => get_class($value),
                 'type' => self::TYPE,

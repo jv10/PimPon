@@ -30,10 +30,16 @@ class PimPon_Routes_Import extends PimPon_ImportBase
     private function routeSave(&$route)
     {
         if ($this->getAllowReplace() === true) {
-            $routeHinder = Staticroute::getByName($route->getName());
-            $routeHinder->delete();
+            $this->deleteRouteIfExist($route->getName());
         }
         $route->save();
+    }
+
+    private function deleteRouteIfExist($routeName){
+        $routeHinder = Staticroute::getByName($routeName);
+        if($routeHinder instanceOf Staticroute){
+            $routeHinder->delete();
+        }
     }
 
 }

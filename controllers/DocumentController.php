@@ -53,7 +53,7 @@ class PimPon_DocumentController extends Pimcore_Controller_Action_Admin
     private function allowReplace()
     {
         $config = PimPon_Plugin::getConfig();
-        return ($config->replacedocument === PimPon_Plugin::ALLOW_REPLACE ? true
+        return ($config->replacedocuments === PimPon_Plugin::ALLOW_REPLACE ? true
                     : false);
 
     }

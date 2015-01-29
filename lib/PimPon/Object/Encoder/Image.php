@@ -1,9 +1,9 @@
 <?php
 
 
-class PimPon_Object_Encoder_Asset implements PimPon_EncoderInterface
+class PimPon_Object_Encoder_Image implements PimPon_EncoderInterface
 {
-    const TYPE = 'asset';
+    const TYPE = 'image';
 
     public static function encode ($value){
         if ($value instanceOf Asset) {

@@ -5,7 +5,7 @@ class PimPon_Role_Export extends PimPon_ExportBase
 
     const SYSTEM = 'system';
 
-    private static $roleClases     = array('User_UserRole','User_Role', 'User_Abstract');
+    private static $roleClasses     = array('User_UserRole','User_Role', 'User_Abstract');
     private static $excludeMethods = array('');
 
     public static function doExport(User_Abstract $role)
@@ -54,7 +54,7 @@ class PimPon_Role_Export extends PimPon_ExportBase
         if ($method->getNumberOfParameters() > 0) {
             return false;
         }
-        if (in_array($method->getDeclaringClass()->name, self::$roleClases) === true) {
+        if (in_array($method->getDeclaringClass()->name, self::$roleClasses) === true) {
             return true;
         }
         return false;

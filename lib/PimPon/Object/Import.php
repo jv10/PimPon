@@ -6,9 +6,9 @@ class PimPon_Object_Import extends PimPon_ImportBase
     const FOLDER_CLASS   = "Object_Folder";
     const ABSTRACT_CLASS = "Object_Abstract";
 
-    protected $excludeProperties = array('class');
-    private $referencesMap            = array();
-    private $bindObjectMap            = array();
+    protected $excludeProperties      = array('class');
+    private $objectMap                = array();
+    private $bindReferencesCollection = array();
 
     public function doImport()
     {
@@ -19,10 +19,9 @@ class PimPon_Object_Import extends PimPon_ImportBase
             throw new Exception('El fichero de importación no parece que este en formato json');
         }
 
-        $arrayData = Zend_Json::decode($jsonData, Zend_Json::TYPE_ARRAY);
-
-        foreach ($arrayData as $objectData) {
-            $this->createObject($objectData);
+        $dataArray = Zend_Json::decode($jsonData, Zend_Json::TYPE_ARRAY);
+        foreach ($dataArray as $data) {
+            $this->createObject($data);
         }
 
         $this->reassignReferences();
@@ -31,82 +30,43 @@ class PimPon_Object_Import extends PimPon_ImportBase
 
     private function createObject($objectData)
     {
-        $class = $objectData['class'];
-        $fullPath = $objectData['FullPath'].'/';
-        $path = $objectData['Path'];
+        $parentId = $this->rootId;
+        $class    = $objectData['class'];
+        $fullPath = $objectData['FullPath']['data'].'/';
+        $path     = $objectData['Path']['data'];
 
-        if ($class == self::FOLDER_CLASS) {
+        if ($class === self::FOLDER_CLASS) {
             $object = new $class();
         } else {
             $object = $class::create();
         }
 
-        foreach ($objectData as $property => $value) {
+        foreach ($objectData as $property => $values) {
             if ($this->isAvailableProperty($property, $object) === false) {
                 continue;
             }
-            //$parseValue = $this->parseValue($value, $property,$fullPath);
-            $decodeValue = PimPon_Object_Encoder::decode($value);
-            $object->{'set'.$property}($decodeValue);
+            foreach ($values as $value) {
+                $decodeValue = PimPon_Object_Encoder::decode($value);
+                $encodertype = PimPon_Object_Encoder::getCurrentEncoderType();
+                if ($this->isReference($encodertype) === true) {
+                    $reference                        = new stdClass();
+                    $reference->objectpath            = $fullPath;
+                    $reference->property              = $property;
+                    $reference->type                  = $encodertype;
+                    $reference->class                 = $value['class'];
+                    $reference->path                  = $decodeValue;
+                    $this->bindReferencesCollection[] = $reference;
+                } else {
+                    $object->{'set'.$property}($decodeValue);
+                }
+            }
         }
-
-        $parentId = ($this->referencesMap[$path] > 0) ? $this->referencesMap[$path]
-                : $this->rootId;
-        
+        if ($this->objectMap[$path] > 0) {
+            $parentId = $this->objectMap[$path];
+        }
         $object->setParentId($parentId);
         $this->objectSave($object);
-        $this->referencesMap[$fullPath] = $object->getId();
-    }
-
-    private function parseValue($value, $property, $fullPath)
-    {
-        if (is_array($value) === false) {
-            return $value;
-        }
-        foreach ($value as $data) {
-            if ($data['type'] === 'table') {
-                return new Object_Data_StructuredTable($data['data']);
-            }else if ($data['type'] === 'date') {
-                return new Zend_Date($data['data'], Zend_Date::TIMESTAMP);
-            } else if ($data['type'] === 'asset'){
-                return Asset::getByPath($data['data']);
-            } else if ($data['type'] === 'href' || $data['type'] === 'collection') {
-                $this->bindObjectMap [$fullPath][$property][$data['type']][]
-                    = $data['data'];
-            } else {
-                throw new Exception("Tipo de dato no contemplado, se esperaba 'date', 'collection', 'href', 'asset' o 'table' y se ha recibido '".$data['type']."'");
-            }
-        }
-        return null;
-    }
-
-    private function reassignReferences()
-    {
-        foreach ($this->bindObjectMap as $oldPath => $bindDataProperties) {
-            $objectId = $this->referencesMap[$oldPath];
-            $object   = Object_Abstract::getById($objectId);
-            foreach ($bindDataProperties as $property => $bindObjectData) {
-                $setMethod = 'set'.ucfirst($property);
-                foreach ($bindObjectData as $type => $data) {
-                    $value = null;
-                    foreach ($data as $oldReferencePath) {
-                        $oldObject       = Object_Abstract::getByPath($oldReferencePath);
-                        $referencePath   = (is_null($oldObject) === true) ? $this->referencesMap[$oldReferencePath]
-                                : $oldObject->getFullPath();
-                        $referenceObject = Object_Abstract::getByPath($referencePath);
-
-                        if ($type === 'href') {
-                            $value = $referenceObject;
-                        }
-                        if ($type === 'collection') {
-                            $value [] = $referenceObject;
-                        }
-                    }
-                }
-                $object->$setMethod($value);
-                $object->save();
-            }
-        }
+        $this->objectMap[$fullPath] = $object->getId();
 
     }
 
@@ -125,6 +85,53 @@ class PimPon_Object_Import extends PimPon_ImportBase
                 throw $ex;
             }
         }
+
+    }
+
+    private function reassignReferences()
+    {
+        foreach ($this->bindReferencesCollection as $reference) {
+            $value             = null;
+            $objectId          = $this->objectMap[$reference->objectpath];
+            $object            = Object_Abstract::getById($objectId);
+            $referenceInstance = $this->getReferenceInstance($reference);
+            if ($reference->type === PimPon_Object_Encoder_Href::TYPE) {
+                $value = $referenceInstance;
+            } else if ($reference->type === PimPon_Object_Encoder_Collection::TYPE) {
+                $value [] = $referenceInstance;
+            } else {
+                $value = null;
+            }
+            $object->{'set'.ucfirst($reference->property)}($value);
+            $object->save();
+        }
+
+    }
+
+    private function isReference($fieldtype)
+    {
+        return ($fieldtype === PimPon_Object_Encoder_Collection::TYPE ||
+            $fieldtype === PimPon_Object_Encoder_Href::TYPE);
+
+    }
+
+    private function isPimcoreObject($classname)
+    {
+        $object = new $classname();
+        return ($object instanceof Object_Abstract);
+
+    }
+
+    private function getReferenceInstance($reference)
+    {
+        $referenceClass    = $reference->class;
+        $referenceInstance = $referenceClass::getByPath($reference->path);
+        if (is_null($referenceInstance) === true && $this->isPimcoreObject($reference->class)
+            === true) {
+            $referenceId       = $this->objectMap[$reference->path];
+            $referenceInstance = $referenceClass::getById($referenceId);
+        }
+        return $referenceInstance;
 
     }
 

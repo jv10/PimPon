@@ -1,50 +1,63 @@
 <?php
 
-class PimPon_Object_Encoder implements PimPon_EncoderInterface
+class PimPon_Object_Encoder
 {
 
-    private static $encoders = array(
-        "PimPon_Object_Encoder_Asset",
-        //PimPon_Object_Encoder_Collection,
-        "PimPon_Object_Encoder_Date",
-        //PimPon_Object_Encoder_Href,
-        "PimPon_Object_Encoder_Table"
-    );
+    private static $currentEncoderType = null;
 
-    public static function encode($value)
+    private static function getEncoderClass($fieldtype)
     {
-        Logger::emerg($value);
-        foreach (self::$encoders as $encoder) {
-            $encodedValue = $encoder::encode($value);
-            if (is_null($encodedValue) === false) {
-                return $encodedValue;
-            }
+        $encoderClass = '';
+        switch ($fieldtype) {
+            case PimPon_Object_Encoder_Image::TYPE:
+                $encoderClass = 'PimPon_Object_Encoder_Image';
+                break;
+            case PimPon_Object_Encoder_Collection::TYPE:
+                $encoderClass = 'PimPon_Object_Encoder_Collection';
+                break;
+            case PimPon_Object_Encoder_Date::TYPE:
+                $encoderClass = 'PimPon_Object_Encoder_Date';
+                break;
+            case PimPon_Object_Encoder_Href::TYPE:
+                $encoderClass = 'PimPon_Object_Encoder_Href';
+                break;
+            case PimPon_Object_Encoder_Table::TYPE:
+                $encoderClass = 'PimPon_Object_Encoder_Table';
+                break;
+            case PimPon_Object_Encoder_Structuredtable::TYPE:
+                $encoderClass = 'PimPon_Object_Encoder_Structuredtable';
+                break;
+            default:
+                $encoderClass = 'PimPon_Object_Encoder_Default';
         }
-        return self::defaultEncode($value);
+        return $encoderClass;
+
+    }
+
+    public static function encode($value, $fieldtype)
+    {
+        $encoderClass = self::getEncoderClass($fieldtype);
+        self::setCurrentEncoderType($encoderClass::TYPE);
+        return $encoderClass::encode($value);
 
     }
 
     public static function decode($value)
     {
-        foreach (self::$encoders as $encoder) {
-            $decodedValue = $encoder::decode($value);
-            if (is_null($decodedValue) === false) {
-                return $decodedValue;
-            }
-        }
-        return self::defaultDecode($value);
+        $encoderClass = self::getEncoderClass($value['type']);
+        self::setCurrentEncoderType($encoderClass::TYPE);
+        return $encoderClass::decode($value);
+    }
+
+    public static function getCurrentEncoderType()
+    {
+        return self::$currentEncoderType;
 
     }
 
-    private static function defaultEncode($value)
+    private static function setCurrentEncoderType($type)
     {
-        return $value;
-
-    }
-
-    private static function defaultDecode($value)
-    {
-        return $value;
+        self::$currentEncoderType = $type;
 
     }
 
