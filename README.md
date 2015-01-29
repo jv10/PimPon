@@ -4,8 +4,10 @@ Permite exportar/importar Objetos, Documentos, Rutas, Roles y Usuarios del backe
 Instalación
 ------------
 
+<pre>
 {
     "require": {
         "pimcore/pimponplugin":"dev-master"
     }
 }
+</pre>
