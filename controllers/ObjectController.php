@@ -18,8 +18,10 @@ class PimPon_ObjectController extends Pimcore_Controller_Action_Admin
             exit;
         } catch (Exception $ex) {
             Logger::err($ex->getMessage());
+            $this->_helper->json(array("success" => false, "data" => 'error'),
+                false);
         }
-
+        $this->getResponse()->setHeader("Content-Type", "text/html");
     }
 
     public function importAction()

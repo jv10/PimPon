@@ -8,25 +8,22 @@ class PimPon_Role_Export extends PimPon_ExportBase
     private static $roleClasses     = array('User_UserRole','User_Role', 'User_Abstract');
     private static $excludeMethods = array('');
 
-    public static function doExport(User_Abstract $role)
+    public static function doExport(array $roleCollection)
     {
         self::$exportFile = self::getExportFilePath();
         self::openExportFile();
-        self::exportRole($role);
+        array_walk($roleCollection, 'PimPon_Role_Export::exportRole');
         self::closeExportFile();
         return self::$exportFile;
 
     }
 
-    private static function exportRole(User_Abstract $role, $key = null)
+    private static function exportRole($role, $key = null)
     {
         $roleClass = get_class($role);
         $roleData        = array();
         $reflectionClass = new ReflectionClass($roleClass);
         $roleMethods     = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
-
-        self::l($roleMethods);
-
         foreach ($roleMethods as $method) {
             if (self::isAvailableMethod($method) === false) {
                 continue;
@@ -38,7 +35,7 @@ class PimPon_Role_Export extends PimPon_ExportBase
         self::writeDataOnFile($roleData);
 
         if (self::hasChilds($role) === true) {
-            array_walk(self::getChilds($role), 'PimPon_Role_Export::exportRole');
+            array_walk(self::getChilds($role->getId()), 'PimPon_Role_Export::exportRole');
         }
 
     }
@@ -61,11 +58,8 @@ class PimPon_Role_Export extends PimPon_ExportBase
 
     }
 
-    private static function hasChilds(User_Abstract $role)
+    private static function hasChilds($role)
     {
-        if (self::isSystem($role) === true) {
-            return true;
-        }
         if (method_exists($role, 'hasChilds') === false) {
             return false;
         }
@@ -73,19 +67,12 @@ class PimPon_Role_Export extends PimPon_ExportBase
 
     }
 
-    private static function getChilds(User_Abstract $role)
+    private static function getChilds($parentId)
     {
         $list = new User_Role_List();
-        $list->setCondition("parentId = ?", $role->getId());
+        $list->setCondition("parentId = ?", $parentId);
         $list->load();
         return $list->getRoles();
-
-    }
-
-    private static function isSystem(User_Abstract $role)
-    {
-        return ($role->getName() === self::SYSTEM);
-
     }
 
 }

@@ -3,11 +3,11 @@ Permite exportar/importar Objetos, Documentos, Rutas, Roles y Usuarios del backe
 
 Instalación
 ------------
-
+Composer:
 <pre>
 {
     "require": {
-        "pimcore/pimponplugin":"dev-master"
+        "jv10/pimpon":"dev-master"
     }
 }
 </pre>

@@ -32,8 +32,8 @@ class PimPon_Object_Import extends PimPon_ImportBase
     {
         $parentId = $this->rootId;
         $class    = $objectData['class'];
-        $fullPath = $objectData['FullPath']['data'].'/';
-        $path     = $objectData['Path']['data'];
+        $fullPath = $objectData['FullPath'][0]['data'].'/';
+        $path     = $objectData['Path'][0]['data'];
 
         if ($class === self::FOLDER_CLASS) {
             $object = new $class();
@@ -42,6 +42,9 @@ class PimPon_Object_Import extends PimPon_ImportBase
         }
 
         foreach ($objectData as $property => $values) {
+            if(is_null($values)===true){
+                continue;
+            }
             if ($this->isAvailableProperty($property, $object) === false) {
                 continue;
             }
@@ -49,13 +52,11 @@ class PimPon_Object_Import extends PimPon_ImportBase
                 $decodeValue = PimPon_Object_Encoder::decode($value);
                 $encodertype = PimPon_Object_Encoder::getCurrentEncoderType();
                 if ($this->isReference($encodertype) === true) {
-                    $reference                        = new stdClass();
-                    $reference->objectpath            = $fullPath;
-                    $reference->property              = $property;
-                    $reference->type                  = $encodertype;
-                    $reference->class                 = $value['class'];
-                    $reference->path                  = $decodeValue;
-                    $this->bindReferencesCollection[] = $reference;
+                    $reference             = new stdClass();
+                    $reference->type       = $encodertype;
+                    $reference->class      = $value['class'];
+                    $reference->path       = $decodeValue;
+                    $this->bindReferencesCollection[$fullPath][$property][] = $reference;
                 } else {
                     $object->{'set'.$property}($decodeValue);
                 }
@@ -90,22 +91,23 @@ class PimPon_Object_Import extends PimPon_ImportBase
 
     private function reassignReferences()
     {
-        foreach ($this->bindReferencesCollection as $reference) {
-            $value             = null;
-            $objectId          = $this->objectMap[$reference->objectpath];
-            $object            = Object_Abstract::getById($objectId);
-            $referenceInstance = $this->getReferenceInstance($reference);
-            if ($reference->type === PimPon_Object_Encoder_Href::TYPE) {
-                $value = $referenceInstance;
-            } else if ($reference->type === PimPon_Object_Encoder_Collection::TYPE) {
-                $value [] = $referenceInstance;
-            } else {
+        foreach ($this->bindReferencesCollection as $objectPath => $propertiesCollection) {
+            $objectId = $this->objectMap[$objectPath];
+            $object   = Object_Abstract::getById($objectId);
+            foreach ($propertiesCollection as $property => $referencesCollection) {
                 $value = null;
+                foreach ($referencesCollection as $reference) {
+                    $referenceInstance = $this->getReferenceInstance($reference);
+                    if ($reference->type === PimPon_Object_Encoder_Href::TYPE) {
+                        $value = $referenceInstance;
+                    } else if ($reference->type === PimPon_Object_Encoder_Collection::TYPE) {
+                        $value[] = $referenceInstance;
+                    }
+                }
+                $object->{'set'.ucfirst($property)}($value);
+                $object->save();
             }
-            $object->{'set'.ucfirst($reference->property)}($value);
-            $object->save();
         }
-
     }
 
     private function isReference($fieldtype)
@@ -126,7 +128,7 @@ class PimPon_Object_Import extends PimPon_ImportBase
     {
         $referenceClass    = $reference->class;
         $referenceInstance = $referenceClass::getByPath($reference->path);
-        if (is_null($referenceInstance) === true && $this->isPimcoreObject($reference->class)
+        if (is_null($referenceInstance) === true && $this->isPimcoreObject($referenceClass)
             === true) {
             $referenceId       = $this->objectMap[$reference->path];
             $referenceInstance = $referenceClass::getById($referenceId);

@@ -640,23 +640,26 @@ pimcore.object.tree = Class.create({
 
         /*********************************************************************/
         // PIMPON PLUGIN
-        var pimponMenu = [];
-        pimponMenu.push({
-            text: 'Importar Objetos',
-            iconCls: "pimpon_icon_importobject",
-            handler: pimcore.plugin.pimpon.handler.importobject.bind(this)
-        });
-        pimponMenu.push({
-            text: 'Exportar Objetos',
-            iconCls: "pimpon_icon_exportobject",
-            handler: pimcore.plugin.pimpon.handler.exportobject.bind(this)
-        });
-        menu.add(new Ext.menu.Item({
-            text: 'PimPon Plugin',
-            iconCls: "pimpon_icon_plugin",
-            hideOnClick: false,
-            menu: pimponMenu
-        }));
+        var user = pimcore.globalmanager.get("user");
+        if (user.admin) { // only admins are allowed to change locks in frontend
+            var pimponMenu = [];
+            pimponMenu.push({
+                text: 'Importar Objetos',
+                iconCls: "pimpon_icon_importobject",
+                handler: pimcore.plugin.pimpon.handler.importobject.bind(this)
+            });
+            pimponMenu.push({
+                text: 'Exportar Objetos',
+                iconCls: "pimpon_icon_exportobject",
+                handler: pimcore.plugin.pimpon.handler.exportobject.bind(this)
+            });
+            menu.add(new Ext.menu.Item({
+                text: 'PimPon Plugin',
+                iconCls: "pimpon_icon_plugin",
+                hideOnClick: false,
+                menu: pimponMenu
+            }));
+        }
         /*********************************************************************/
 
 

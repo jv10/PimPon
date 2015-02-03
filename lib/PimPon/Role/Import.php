@@ -5,8 +5,8 @@ class PimPon_Role_Import extends PimPon_ImportBase
 
     protected $excludeProperties = array('ParentId', 'Id', 'Type', 'Name');
     private $rolesMap            = array();
-    private $workspaces          = array('WorkspacesObject' => 'Role_Workspace_Object',
-        'WorkspacesDocument' => 'Role_Workspace_Document', 'WorkspacesAsset' => 'Role_Workspace_Asset');
+    private $workspaces          = array('WorkspacesObject' => 'User_Workspace_Object',
+        'WorkspacesDocument' => 'User_Workspace_Document', 'WorkspacesAsset' => 'User_Workspace_Asset');
     private $arrayTypeProperties = array('Classes', 'DocTypes');
     private $currentClass        = '';
     private $availablesRoleTypes = array('role', 'rolefolder');
@@ -89,7 +89,7 @@ class PimPon_Role_Import extends PimPon_ImportBase
                     foreach ($workspace as $varKey => $varValue) {
                         $newWorkspace->$varKey = $varValue;
                     }
-                    $newWorkspace->setRoleId($roleId);
+                    $newWorkspace->setUserId($roleId);
                     $clonedWorkspaces[] = $newWorkspace;
                 }
             }

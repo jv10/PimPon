@@ -3,7 +3,7 @@
 class PimPon_Object_Export extends PimPon_ExportBase
 {
 
-    private static $includeMethods = array('getKey', 'getFullPath', 'getPath', 'getPublished');
+    private static $includeMethods = array('getKey', 'getFullPath', 'getPath', 'getPublished','getParentId');
 
     public static function doExport(Object_Abstract $object)
     {
@@ -17,26 +17,23 @@ class PimPon_Object_Export extends PimPon_ExportBase
 
     private static function exportObject(Object_Abstract $object, $key = null)
     {
-        self::l('******************************************');
-        self::l($object);
-
-        foreach ($object->getClass()->getFieldDefinitions() as $field) {
-            $key = $field->getName();
-            self::l($field);
-        }
-
         if ($object->getId() !== self::ROOT_ID) {
-            $objectData = array();
-            $objectClass = get_class($object);
+            $objectData           = array();
+            $objectClass          = get_class($object);
             $objectData ['class'] = $objectClass;
-            foreach ($object->getClass()->getFieldDefinitions() as $field) {
-                $property               = ucfirst($field->getName());
-                $fieldtype              = $field->getFieldtype();
-                $value                  = $object->{'get'.$property}();
-                $objectData [$property] = PimPon_Object_Encoder::encode($value,
-                        $fieldtype);
+            if ($objectClass != 'Object_Folder') {
+                foreach ($object->getClass()->getFieldDefinitions() as $field) {
+                    $property               = ucfirst($field->getName());
+                    $fieldtype              = $field->getFieldtype();
+                    $value                  = $object->{'get'.$property}();
+                    $objectData [$property] = PimPon_Object_Encoder::encode($value,
+                            $fieldtype);
+                }
             }
             foreach (self::$includeMethods as $method) {
+                if(method_exists($object, $method)===false){
+                    continue;
+                }
                 $property               = ucfirst(substr($method, 3));
                 $value                  = $object->{$method}();
                 $objectData [$property] = PimPon_Object_Encoder_Default::encode($value);

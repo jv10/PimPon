@@ -1,5 +1,5 @@
 {
-    "name": "PimPon",
+    "name": "jv10/pimpon",
     "type": "pimcore-plugin",
     "license": "BSD-3-Clause",
 	"description": "Provide import-export backend interfaze to Pimcore",

@@ -238,17 +238,10 @@ pimcore.settings.staticroutes = Class.create({
         ];
         ///////////////////////////////////////////////////////////////////////
         // PIMPON PLUGIN
-        this.grid = new Ext.grid.EditorGridPanel({
-            frame: false,
-            autoScroll: true,
-            store: this.store,
-            columnLines: true,
-            trackMouseOver: true,
-            stripeRows: true,
-            columns: typesColumns,
-            sm: new Ext.grid.RowSelectionModel({singleSelect: true}),
-            bbar: this.pagingtoolbar,
-            tbar: [
+        var user = pimcore.globalmanager.get("user");
+        var pimponTbar = {};
+        if (user.admin) { // only admins are allowed to change locks in frontend
+            pimponTbar = [
                 {
                     text: t('add'),
                     handler: this.onAdd.bind(this),
@@ -275,13 +268,40 @@ pimcore.settings.staticroutes = Class.create({
                     style: "margin: 0 10px 0 0;"
                 },
                 this.filterField
-            ],
+            ];
+        } else {
+            pimponTbar = [
+                {
+                    text: t('add'),
+                    handler: this.onAdd.bind(this),
+                    iconCls: "pimcore_icon_add"
+                },
+                "->",
+                {
+                    text: t("filter") + "/" + t("search"),
+                    xtype: "tbtext",
+                    style: "margin: 0 10px 0 0;"
+                },
+                this.filterField
+            ];
+        }
+        this.grid = new Ext.grid.EditorGridPanel({
+            frame: false,
+            autoScroll: true,
+            store: this.store,
+            columnLines: true,
+            trackMouseOver: true,
+            stripeRows: true,
+            columns: typesColumns,
+            sm: new Ext.grid.RowSelectionModel({singleSelect: true}),
+            bbar: this.pagingtoolbar,
+            tbar: pimponTbar,
             viewConfig: {
                 forceFit: true
             }
         });
         ///////////////////////////////////////////////////////////////////////
-        
+
         return this.grid;
     },
     onAdd: function (btn, ev) {

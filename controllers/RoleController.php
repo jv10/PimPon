@@ -6,18 +6,27 @@ class PimPon_RoleController extends Pimcore_Controller_Action_Admin
     public function exportAction()
     {
         try {
-            $roleId = $this->getParam("roleId");
-
-            $role = User_Abstract::getById($roleId);
-
-            $exportFile = PimPon_Role_Export::doExport($role);
-
+            $fileContents = "";
+            $fileTitle    = "";
+            $roleId       = $this->getParam("roleId");
+            if ($roleId > 0) {
+                $role              = User_Abstract::getById($roleId);
+                $roleCollection [] = $role;
+                $fileContents      = PimPon_Role_Export::doExport($roleCollection);
+                $fileTitle         = $role->getName();
+            } else if ($roleId == 0) {
+                $list           = new User_Role_List();
+                $list->setCondition("parentId = ?", intval($roleId));
+                $list->load();
+                $roleCollection = $list->getRoles();
+                $fileContents   = PimPon_Role_Export::doExport($roleCollection);
+                $fileTitle      = 'all';
+            }
             ob_end_clean();
             header("Content-type: application/json");
-            header("Content-Disposition: attachment; filename=\"pimponexport.roles.".$role->getName().".json\"");
-            echo file_get_contents($exportFile);
+            header("Content-Disposition: attachment; filename=\"pimponexport.roles.".$fileTitle.".json\"");
+            echo file_get_contents($fileContents);
             exit;
-            
         } catch (Exception $ex) {
             Logger::err($ex->getMessage());
             $this->_helper->json(array("success" => false, "data" => 'error'),

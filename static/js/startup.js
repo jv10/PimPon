@@ -47,25 +47,28 @@ pimcore.plugin.pimpon = Class.create(pimcore.plugin.admin, {
 
                 ///////////////////////////////////////////////////////////
                 // PIMPON PLUGIN
-                var pimponMenu = [];
-                if (this.allowChildren) {
+                var user = pimcore.globalmanager.get("user");
+                if (user.admin) { // only admins are allowed to change locks in frontend
+                    var pimponMenu = [];
+                    if (this.allowChildren) {
+                        pimponMenu.push({
+                            text: 'Importar Usuarios',
+                            iconCls: "pimpon_icon_importusers",
+                            handler: pimcore.plugin.pimpon.handler.importusers.bind(this)
+                        });
+                    }
                     pimponMenu.push({
-                        text: 'Importar Usuarios',
-                        iconCls: "pimpon_icon_importusers",
-                        handler: pimcore.plugin.pimpon.handler.importusers.bind(this)
+                        text: 'Exportar Usuarios',
+                        iconCls: "pimpon_icon_exportusers",
+                        handler: pimcore.plugin.pimpon.handler.exportusers.bind(this)
                     });
+                    menu.add(new Ext.menu.Item({
+                        text: 'PimPon Plugin',
+                        iconCls: "pimpon_icon_plugin",
+                        hideOnClick: false,
+                        menu: pimponMenu
+                    }));
                 }
-                pimponMenu.push({
-                    text: 'Exportar Usuarios',
-                    iconCls: "pimpon_icon_exportusers",
-                    handler: pimcore.plugin.pimpon.handler.exportusers.bind(this)
-                });
-                menu.add(new Ext.menu.Item({
-                    text: 'PimPon Plugin',
-                    iconCls: "pimpon_icon_plugin",
-                    hideOnClick: false,
-                    menu: pimponMenu
-                }));
                 ///////////////////////////////////////////////////////////    
 
                 if (this.id != user.id) {
@@ -125,25 +128,28 @@ pimcore.plugin.pimpon = Class.create(pimcore.plugin.admin, {
 
                 ///////////////////////////////////////////////////////////
                 // PIMPON PLUGIN
-                var pimponMenu = [];
-                if (this.allowChildren) {
+                var user = pimcore.globalmanager.get("user");
+                if (user.admin) { // only admins are allowed to change locks in frontend
+                    var pimponMenu = [];
+                    if (this.allowChildren) {
+                        pimponMenu.push({
+                            text: 'Importar Roles',
+                            iconCls: "pimpon_icon_importroles",
+                            handler: pimcore.plugin.pimpon.handler.importroles.bind(this)
+                        });
+                    }
                     pimponMenu.push({
-                        text: 'Importar Roles',
-                        iconCls: "pimpon_icon_importroles",
-                        handler: pimcore.plugin.pimpon.handler.importroles.bind(this)
+                        text: 'Exportar Roles',
+                        iconCls: "pimpon_icon_exportroles",
+                        handler: pimcore.plugin.pimpon.handler.exportroles.bind(this)
                     });
+                    menu.add(new Ext.menu.Item({
+                        text: 'PimPon Plugin',
+                        iconCls: "pimpon_icon_plugin",
+                        hideOnClick: false,
+                        menu: pimponMenu
+                    }));
                 }
-                pimponMenu.push({
-                    text: 'Exportar Roles',
-                    iconCls: "pimpon_icon_exportroles",
-                    handler: pimcore.plugin.pimpon.handler.exportroles.bind(this)
-                });
-                menu.add(new Ext.menu.Item({
-                    text: 'PimPon Plugin',
-                    iconCls: "pimpon_icon_plugin",
-                    hideOnClick: false,
-                    menu: pimponMenu
-                }));
                 ///////////////////////////////////////////////////////////    
 
                 menu.add(new Ext.menu.Item({

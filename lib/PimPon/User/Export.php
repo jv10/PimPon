@@ -3,25 +3,25 @@
 class PimPon_User_Export extends PimPon_ExportBase
 {
 
-    const SYSTEM = 'system';
+    const ADMIN = true;
 
     private static $userClases     = array('User_UserRole', 'User', 'User_Abstract');
     private static $excludeMethods = array('');
 
-    public static function doExport(User_Abstract $user)
+    public static function doExport(array $userCollection)
     {
         self::$exportFile = self::getExportFilePath();
         self::openExportFile();
-        self::exportUser($user);
+        array_walk($userCollection, 'PimPon_User_Export::exportUser');
         self::closeExportFile();
         return self::$exportFile;
 
     }
 
-    private static function exportUser(User_Abstract $user, $key = null)
+    private static function exportUser(User $user, $key = null)
     {
         $userClass = get_class($user);
-        if (self::isSystem($user)===false) {
+        if (self::isAdmin($user)===false) {
             $userData        = array();
             $reflectionClass = new ReflectionClass($userClass);
             $userMethods     = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
@@ -63,11 +63,8 @@ class PimPon_User_Export extends PimPon_ExportBase
 
     }
 
-    private static function hasChilds(User_Abstract $user)
+    private static function hasChilds(User $user)
     {
-        if (self::isSystem($user) === true) {
-            return true;
-        }
         if (method_exists($user, 'hasChilds') === false) {
             return false;
         }
@@ -75,7 +72,7 @@ class PimPon_User_Export extends PimPon_ExportBase
 
     }
 
-    private static function getChilds(User_Abstract $user)
+    private static function getChilds(User $user)
     {
         $list = new User_List();
         $list->setCondition("parentId = ?", $user->getId());
@@ -84,9 +81,9 @@ class PimPon_User_Export extends PimPon_ExportBase
 
     }
 
-    private static function isSystem(User_Abstract $user)
+    private static function isAdmin(User $user)
     {
-        return ($user->getName() === self::SYSTEM);
+        return ($user->getAdmin() === self::ADMIN);
 
     }
 

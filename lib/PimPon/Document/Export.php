@@ -7,7 +7,7 @@ class PimPon_Document_Export extends PimPon_ExportBase
         'getTypes', 'getType', 'getId', 'getParentId', 'getProperties', 'getUserModification',
         'getUserOwner', 'getModificationDate', 'getCreationDate', 'getIndex');
 
-    public static function doExport(Document $document)
+    public static function doExport($document)
     {
         self::$exportFile = self::getExportFilePath();
         self::openExportFile();
@@ -17,7 +17,7 @@ class PimPon_Document_Export extends PimPon_ExportBase
 
     }
 
-    private static function exportDocument(Document $document, $key = null)
+    private static function exportDocument($document, $key = null)
     {
         if ($document->getId() !== self::ROOT_ID) {
             $documentData           = array();
@@ -52,8 +52,8 @@ class PimPon_Document_Export extends PimPon_ExportBase
         if ($method->getNumberOfParameters() > 0) {
             return false;
         }
-        if ($method->getDeclaringClass()->name === $class || $method->getDeclaringClass()->name
-            === 'Document') {
+        $methodClass = $method->getDeclaringClass()->name;
+        if (in_array($methodClass,array($class,'Document','Document_PageSnippet'))) {
             return true;
         }
         return false;

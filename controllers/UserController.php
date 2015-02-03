@@ -6,17 +6,27 @@ class PimPon_UserController extends Pimcore_Controller_Action_Admin
     public function exportAction()
     {
         try {
-            $userId = $this->getParam("userId");
-            $user = User_Abstract::getById($userId);
-
-            $exportFile = PimPon_User_Export::doExport($user);
-
+            $fileContents = "";
+            $fileTitle    = "";
+            $userId       = $this->getParam("userId");
+            if ($userId > 0) {
+                $user              = User_Abstract::getById($userId);
+                $userCollection [] = $user;
+                $fileContents      = PimPon_User_Export::doExport($userCollection);
+                $fileTitle         = $user->getName();
+            } else if ($userId == 0) {
+                $list           = new User_List();
+                $list->setCondition("parentId = ?", intval($userId));
+                $list->load();
+                $userCollection = $list->getUsers();
+                $fileContents   = PimPon_User_Export::doExport($userCollection);
+                $fileTitle      = 'all';
+            }
             ob_end_clean();
             header("Content-type: application/json");
-            header("Content-Disposition: attachment; filename=\"pimponexport.users.".$user->getName().".json\"");
-            echo file_get_contents($exportFile);
+            header("Content-Disposition: attachment; filename=\"pimponexport.users.".$fileTitle.".json\"");
+            echo file_get_contents($fileContents);
             exit;
-            
         } catch (Exception $ex) {
             Logger::err($ex->getMessage());
             $this->_helper->json(array("success" => false, "data" => 'error'),
@@ -53,8 +63,7 @@ class PimPon_UserController extends Pimcore_Controller_Action_Admin
     private function allowReplace()
     {
         $config = PimPon_Plugin::getConfig();
-        return ($config->replaceusers === PimPon_Plugin::ALLOW_REPLACE ? true
-                    : false);
+        return ($config->replaceusers === PimPon_Plugin::ALLOW_REPLACE ? true : false);
 
     }
 
