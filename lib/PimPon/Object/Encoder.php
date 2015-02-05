@@ -7,12 +7,15 @@ class PimPon_Object_Encoder
 
     private static function getEncoderClass($fieldtype)
     {
+        Logger::emerg('*********************************');
+        Logger::emerg('tipo campo: '. $fieldtype);
         $encoderClass = '';
         switch ($fieldtype) {
             case PimPon_Object_Encoder_Image::TYPE:
                 $encoderClass = 'PimPon_Object_Encoder_Image';
                 break;
             case PimPon_Object_Encoder_Collection::TYPE:
+            case PimPon_Object_Encoder_Collection::TYPE2:
                 $encoderClass = 'PimPon_Object_Encoder_Collection';
                 break;
             case PimPon_Object_Encoder_Date::TYPE:
@@ -30,6 +33,7 @@ class PimPon_Object_Encoder
             default:
                 $encoderClass = 'PimPon_Object_Encoder_Default';
         }
+        Logger::emerg('encoder class: '. $encoderClass);
         return $encoderClass;
 
     }

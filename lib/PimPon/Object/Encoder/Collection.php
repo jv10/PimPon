@@ -3,7 +3,8 @@
 class PimPon_Object_Encoder_Collection implements PimPon_EncoderInterface
 {
 
-    const TYPE = 'objects';
+    const TYPE  = 'objects';
+    const TYPE2 = 'multihref';
 
     public static function encode($value)
     {
